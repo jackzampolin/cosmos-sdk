@@ -27,7 +27,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	minter := k.GetMinter(ctx)
 	params := k.GetParams(ctx)
 
-	if k.GetEpochNum(ctx) >= k.GetParams(ctx).HalvenPeriodInEpoch+k.GetLastHalvenEpochNum(ctx) {
+	if k.GetEpochNum(ctx) >= k.GetParams(ctx).ReductionPeriodInEpochs+k.GetLastHalvenEpochNum(ctx) {
 		// Halven the reward per halven period
 		minter.AnnualProvisions = minter.NextAnnualProvisions(params)
 		k.SetMinter(ctx, minter)
