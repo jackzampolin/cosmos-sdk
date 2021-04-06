@@ -21,8 +21,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 		return
 	}
 
-	k.SetLastEpochTime(ctx, ctx.BlockTime())
-	k.SetEpochNum(ctx, k.GetEpochNum(ctx)+1)
+	nextEpochNum := k.GetEpochNum(ctx) + 1
 
 	// fetch stored minter & params
 	minter := k.GetMinter(ctx)
@@ -31,12 +30,15 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// Check if we have hit an epoch where we update the inflation parameter.
 	// Since epochs only update based on BFT time data, it is safe to store the "halvening period time"
 	// in terms of the number of epochs that have transpired.
-	if k.GetEpochNum(ctx) >= k.GetParams(ctx).ReductionPeriodInEpochs+k.GetLastHalvenEpochNum(ctx) {
+	if nextEpochNum >= k.GetParams(ctx).ReductionPeriodInEpochs+k.GetLastHalvenEpochNum(ctx) {
 		// Halven the reward per halven period
 		minter.AnnualProvisions = minter.NextAnnualProvisions(params)
 		k.SetMinter(ctx, minter)
-		k.SetLastHalvenEpochNum(ctx, k.GetEpochNum(ctx))
+		k.SetLastHalvenEpochNum(ctx, nextEpochNum)
 	}
+
+	k.SetLastEpochTime(ctx, ctx.BlockTime())
+	k.SetEpochNum(ctx, nextEpochNum)
 
 	// mint coins, update supply
 	mintedCoin := minter.EpochProvision(params)
@@ -60,7 +62,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeMint,
-			sdk.NewAttribute(types.AttributeEpochNumber, fmt.Sprintf("%d", k.GetEpochNum(ctx))),
+			sdk.NewAttribute(types.AttributeEpochNumber, fmt.Sprintf("%d", nextEpochNum)),
 			sdk.NewAttribute(types.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, mintedCoin.Amount.String()),
 		),
