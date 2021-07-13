@@ -29,6 +29,22 @@ type Factory struct {
 	simulateAndExecute bool
 }
 
+func NewFactory(clientCtx client.Context, accnum, accseq, gas uint64) Factory {
+	return Factory{
+		txConfig:         clientCtx.TxConfig,
+		accountRetriever: clientCtx.AccountRetriever,
+		keybase:          clientCtx.Keyring,
+		chainID:          clientCtx.ChainID,
+		gas:              gas,
+		accountNumber:    accnum,
+		sequence:         accseq,
+		gasAdjustment:    1.0,
+		memo:             "",
+		signMode:         signing.SignMode_SIGN_MODE_DIRECT,
+	}
+
+}
+
 // NewFactoryCLI creates a new Factory.
 func NewFactoryCLI(clientCtx client.Context, flagSet *pflag.FlagSet) Factory {
 	signModeStr := clientCtx.SignModeStr

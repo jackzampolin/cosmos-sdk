@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	"github.com/tendermint/tendermint/mempool"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -14,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 // BroadcastTx broadcasts a transactions either synchronously or asynchronously
@@ -55,7 +54,7 @@ func CheckTendermintError(err error, txBytes []byte) *sdk.TxResponse {
 	txHash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 
 	switch {
-	case strings.Contains(errStr, strings.ToLower(mempool.ErrTxInCache.Error())):
+	case strings.Contains(errStr, "tx already exists in cache"):
 		return &sdk.TxResponse{
 			Code:      sdkerrors.ErrTxInMempoolCache.ABCICode(),
 			Codespace: sdkerrors.ErrTxInMempoolCache.Codespace(),
